@@ -1,138 +1,77 @@
-
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ChatMessage, GraphData } from '../types';
-import { queryAgent } from '../services/mockApiService';
-import Spinner from '../components/Spinner';
-import GraphVisualization from './GraphVisualization';
-import SynapseIcon from '../components/icons/SynapseIcon';
+import React, { useState, useRef, useEffect } from 'react';
+import Card from '../components/Card';
+import { useAgentStore } from '../stores/agentStore';
+import AgentThoughtStream from '../components/agent/AgentThoughtStream';
+import VirtualChatMessageList from '../components/VirtualChatMessageList';
 
 const QueryView: React.FC = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentGraphData, setCurrentGraphData] = useState<GraphData>({ nodes: [], links: [] });
+  const [inputValue, setInputValue] = useState('');
+  const { messages, steps, isThinking, runQuery } = useAgentStore();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputValue.trim() && !isThinking) {
+      runQuery(inputValue.trim());
+      setInputValue('');
+    }
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSubmit(e);
+    }
   };
 
-  useEffect(scrollToBottom, [messages]);
-
-  const handleSend = useCallback(async () => {
-    if (input.trim() === '' || isLoading) return;
-
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      text: input,
-      sender: 'user',
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      const agentResponse = await queryAgent(input);
-      setMessages((prev) => [...prev, agentResponse]);
-      if (agentResponse.graphData) {
-        setCurrentGraphData(agentResponse.graphData);
+  useEffect(() => {
+      if (inputRef.current) {
+          inputRef.current.style.height = 'auto';
+          const scrollHeight = inputRef.current.scrollHeight;
+          inputRef.current.style.height = `${scrollHeight}px`;
       }
-    } catch (error) {
-      const errorMessage: ChatMessage = {
-        id: Date.now().toString(),
-        text: 'Sorry, I encountered an error. Please try again.',
-        sender: 'agent',
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [input, isLoading]);
+  }, [inputValue]);
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSend();
-    }
-  };
 
   return (
-    <div className="h-full flex flex-col md:flex-row gap-6">
-      {/* Left side: Chat and Agent Actions */}
-      <div className="flex flex-col h-full md:w-1/2 lg:w-2/5 animate-fade-in">
-        <div className="flex-1 bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-gray-700">
-            <h3 className="text-lg font-bold text-white">Agent Interaction</h3>
-          </div>
-          <div className="flex-1 p-4 overflow-y-auto">
-            {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
-                <SynapseIcon className="w-16 h-16 mb-4"/>
-                <p className="text-lg">Welcome to the Cognitive Core</p>
-                <p>Ask a question to begin exploring the knowledge graph.</p>
-              </div>
-            )}
-            {messages.map((msg) => (
-              <div key={msg.id} className={`mb-4 flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`rounded-lg px-4 py-2 max-w-sm lg:max-w-md ${msg.sender === 'user' ? 'bg-primary text-white' : 'bg-gray-700 text-gray-200'}`}>
-                  <p className="whitespace-pre-wrap">{msg.text}</p>
-                  {msg.sender === 'agent' && msg.sources && (
-                    <div className="mt-3 border-t border-gray-600 pt-2">
-                      <h4 className="font-bold text-sm mb-1">Sources:</h4>
-                      <ul className="space-y-1">
-                        {msg.sources.map((source, index) => (
-                           <li key={index} className="text-xs p-2 bg-gray-600 rounded">
-                             <p className="font-semibold text-primary">{source.title}</p>
-                             <p className="text-gray-400 italic">"{source.snippet}"</p>
-                           </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full max-h-[calc(100vh-4rem)]">
+      <div className="lg:col-span-2 flex flex-col h-full">
+        <Card title="Agent Interaction" className="flex-grow flex flex-col">
+          <div className="flex-grow overflow-y-auto mb-4 pr-2">
+            {messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                    <p>Ask the agent a question to start the conversation.</p>
                 </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-700 rounded-lg p-4">
-                  <Spinner />
-                </div>
-              </div>
+            ) : (
+                <VirtualChatMessageList messages={messages} isLoading={isThinking && steps.length > 0} />
             )}
-            <div ref={messagesEndRef} />
           </div>
-          <div className="p-4 border-t border-gray-700 bg-gray-800">
-            <div className="flex items-center bg-gray-700 rounded-lg">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask the agent a question..."
-                className="w-full bg-transparent p-3 text-gray-200 focus:outline-none"
-                disabled={isLoading}
-              />
-              <button
-                onClick={handleSend}
-                disabled={isLoading || input.trim() === ''}
-                className="p-3 text-primary disabled:text-gray-500 hover:text-primary-hover disabled:cursor-not-allowed transition"
-              >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+          <form onSubmit={handleSubmit} className="relative">
+            <textarea
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask a question about your data..."
+              disabled={isThinking}
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 pl-4 pr-28 text-white focus:outline-none focus:ring-2 focus:ring-primary transition resize-none"
+              rows={1}
+              style={{maxHeight: '200px'}}
+            />
+            <button
+              type="submit"
+              disabled={isThinking || !inputValue.trim()}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-primary text-white rounded-md font-semibold hover:bg-primary-hover disabled:bg-gray-600 disabled:cursor-not-allowed transition"
+            >
+              Send
+            </button>
+          </form>
+        </Card>
       </div>
-
-      {/* Right side: Knowledge Graph */}
-      <div className="flex-1 bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col min-h-[400px] md:min-h-0 animate-fade-in">
-         <div className="p-4 border-b border-gray-700">
-            <h3 className="text-lg font-bold text-white">Temporal Knowledge Graph</h3>
-          </div>
-        <GraphVisualization data={currentGraphData} />
+      <div className="lg:col-span-1 h-full">
+        <Card title="Cognitive Flow" className="h-full overflow-y-auto">
+            <AgentThoughtStream steps={steps} isThinking={isThinking} />
+        </Card>
       </div>
     </div>
   );

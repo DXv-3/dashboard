@@ -1,56 +1,71 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Synapse Platform UI</title>
+    <title>Synapse Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              'gray-900': '#121212',
-              'gray-800': '#1e1e1e',
-              'gray-700': '#2d2d2d',
-              'gray-600': '#4a4a4a',
-              'gray-400': '#9a9a9a',
-              'gray-200': '#e0e0e0',
-              'primary': '#00aaff',
-              'primary-hover': '#0088cc',
-              'secondary': '#ff4081',
+              primary: {
+                DEFAULT: '#00aaff',
+                hover: '#0088cc',
+              },
+              gray: {
+                900: '#121212',
+                800: '#1e1e1e',
+                700: '#2a2a2a',
+                600: '#3a3a3a',
+                500: '#5a5a5a',
+                400: '#9a9a9a',
+                300: '#cccccc',
+                200: '#e0e0e0',
+                100: '#f5f5f5',
+              }
             },
             animation: {
-              'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'fade-in': 'fadeIn 0.5s ease-in-out',
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+              'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
             },
             keyframes: {
               fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
+                '0%': { opacity: 0 },
+                '100%': { opacity: 1 },
               },
-            },
-          },
-        },
+              fadeInUp: {
+                '0%': { opacity: 0, transform: 'translateY(20px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              }
+            }
+          }
+        }
       }
     </script>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
-    "d3": "https://aistudiocdn.com/d3@^7.9.0"
-  }
-}
-</script>
-</head>
-  <body class="bg-gray-900 text-gray-200">
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://aistudiocdn.com/react@^19.2.0",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+          "react/": "https://aistudiocdn.com/react@^19.2.0/",
+          "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
+          "react-force-graph-2d": "https://aistudiocdn.com/react-force-graph-2d@^1.29.0",
+          "vite": "https://aistudiocdn.com/vite@^7.2.2",
+          "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.0",
+          "rollup-plugin-visualizer": "https://aistudiocdn.com/rollup-plugin-visualizer@^6.0.5",
+          "zustand": "https://aistudiocdn.com/zustand@^5.0.8",
+          "react-intersection-observer": "https://aistudiocdn.com/react-intersection-observer@^10.0.0",
+          "react-window": "https://aistudiocdn.com/react-window@^2.2.3",
+          "d3": "https://aistudiocdn.com/d3@^7.9.0"
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-gray-900">
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

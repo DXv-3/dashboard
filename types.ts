@@ -1,39 +1,66 @@
-// FIX: Add import for 'd3' to resolve missing namespace and provide types for graph visualization.
-import * as d3 from 'd3';
-
 export enum View {
-  Ingest = 'Data Ingestion',
-  Query = 'Cognitive Core',
-  Dashboard = 'System Dashboard',
+  Dashboard = 'Dashboard',
+  Ingest = 'Ingest',
+  Query = 'Query',
+  KnowledgeBase = 'Knowledge Base',
+  Observability = 'Observability',
 }
 
-export interface GraphNode extends d3.SimulationNodeDatum {
+export interface IngestionRecord {
   id: string;
-  label: string;
-  type: 'entity' | 'concept' | 'document';
-}
-
-export interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
-  source: string | GraphNode;
-  target: string | GraphNode;
-  label: string;
-}
-
-export interface GraphData {
-  nodes: GraphNode[];
-  links: GraphLink[];
+  name: string;
+  size: number;
+  type: string;
+  ingestedAt: string;
+  status: 'Processed' | 'Failed' | 'Pending';
 }
 
 export interface ChatMessage {
   id: string;
   text: string;
   sender: 'user' | 'agent';
-  graphData?: GraphData;
-  sources?: { title: string; snippet: string }[];
+  sources?: Source[];
+}
+
+export interface Source {
+  title: string;
+  snippet: string;
 }
 
 export interface HealthMetric {
-    name: string;
-    status: 'ok' | 'warning' | 'error';
-    latency: number;
+  name: string;
+  status: 'ok' | 'warning' | 'error';
+  latency: number;
 }
+
+export enum AgentStepType {
+  Thought = 'Thought',
+  Action = 'Action',
+  Observation = 'Observation',
+}
+
+export interface AgentStep {
+  id: string;
+  type: AgentStepType;
+  content: string;
+}
+
+export interface GraphNode {
+    id: string | number;
+    label: string;
+    type: string;
+    x?: number;
+    y?: number;
+}
+
+export interface GraphLink {
+    source: string | number;
+    target: string | number;
+}
+
+export interface GraphData {
+    nodes: GraphNode[];
+    links: GraphLink[];
+}
+
+export type QueryStrategy = 'Simple' | 'Multi-hop' | 'Agentic';

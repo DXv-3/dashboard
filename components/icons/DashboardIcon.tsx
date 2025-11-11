@@ -18,5 +18,4 @@ const DashboardIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-// FIX: Add default export to make the component importable.
 export default DashboardIcon;
