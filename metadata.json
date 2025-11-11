@@ -1,0 +1,5 @@
+{
+  "name": "Synapse Platform UI",
+  "description": "A user interface for the Synapse Platform, an agentic AI knowledge graph MVP. This UI allows for data ingestion, querying the cognitive core, and observing system health through a simulated dashboard.",
+  "requestFramePermissions": []
+}
